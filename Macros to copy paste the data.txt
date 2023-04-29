@@ -1,0 +1,75 @@
+Sub CopyDataAndCleanUp()
+    Dim srcWorkbook As Workbook
+    Dim destWorkbook As Workbook
+    Dim srcWorksheet As Worksheet
+    Dim destWorksheet As Worksheet
+    Dim srcFile As String
+    Dim lastRow As Long
+
+    ' Open a File Dialog to select the source file
+    Dim fileDialog As FileDialog
+    Set fileDialog = Application.FileDialog(msoFileDialogFilePicker)
+    With fileDialog
+        .Title = "Select the parsed_data file"
+        .AllowMultiSelect = False
+        .Filters.Clear
+        .Filters.Add "Excel Files", "*.xlsx; *.xls"
+
+        If .Show = -1 Then
+            srcFile = .SelectedItems(1)
+        Else
+            MsgBox "No file was selected. Operation canceled."
+            Exit Sub
+        End If
+    End With
+
+    ' Set the source and destination workbooks and worksheets
+    Set srcWorkbook = Workbooks.Open(srcFile)
+    Set destWorkbook = ThisWorkbook
+    Set srcWorksheet = srcWorkbook.Worksheets(1)
+    Set destWorksheet = destWorkbook.Worksheets(1)
+
+    ' Find the last row in the source worksheet
+    lastRow = srcWorksheet.Cells(srcWorksheet.Rows.Count, "B").End(xlUp).Row
+
+    ' Copy data from source to destination
+    srcWorksheet.Range("B1:B" & lastRow).Copy
+    destWorksheet.Range("A1").PasteSpecial xlPasteValues
+
+    srcWorksheet.Range("E1:E" & lastRow).Copy
+    destWorksheet.Range("B1").PasteSpecial xlPasteValues
+
+    srcWorksheet.Range("H1:H" & lastRow).Copy
+    destWorksheet.Range("C1").PasteSpecial xlPasteValues
+
+    srcWorksheet.Range("K1:K" & lastRow).Copy
+    destWorksheet.Range("D1").PasteSpecial xlPasteValues
+
+    srcWorksheet.Range("N1:N" & lastRow).Copy
+    destWorksheet.Range("E1").PasteSpecial xlPasteValues
+
+    ' Close the source workbook without saving changes
+    srcWorkbook.Close False
+
+    ' Clear the clipboard
+    Application.CutCopyMode = False
+
+    ' Find the last row in column A of the destination worksheet
+    Dim lastRowDest As Long
+    lastRowDest = destWorksheet.Cells(destWorksheet.Rows.Count, "A").End(xlUp).Row
+
+    ' Drag the formulas in columns F to BQ from row 2 down to the last row of data in column A
+    destWorksheet.Range("F2:BQ2").AutoFill Destination:=destWorksheet.Range("F2:BQ" & lastRowDest), Type:=xlFillDefault
+
+    ' Copy the entire content of the destination worksheet and paste it as values to remove the formulas
+    Dim lastColumnDest As String
+    lastColumnDest = "BQ"
+    destWorksheet.Range("A1:" & lastColumnDest & lastRowDest).Copy
+    destWorksheet.Range("A1").PasteSpecial Paste:=xlPasteValues
+
+    ' Clear the clipboard
+    Application.CutCopyMode = False
+
+    MsgBox "Data copied, formulas applied, and formulas removed successfully."
+
+End Sub
